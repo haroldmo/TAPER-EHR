@@ -55,6 +55,7 @@ def main(config, resume, nni_params={}):
 
     # setup data_loader instances
     data_loader = get_instance(module_data, 'data_loader', config)
+    # data_loader.seed = 5
     valid_data_loader = data_loader.split_validation()
 
     # build model architecture
@@ -80,7 +81,7 @@ def main(config, resume, nni_params={}):
                       lr_scheduler=lr_scheduler,
                       train_logger=train_logger)
 
-    trainer.train()
+    return trainer.train()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Structmed Trainer')
@@ -96,10 +97,21 @@ if __name__ == '__main__':
         # load config file
         config = json.load(open(args.config))
         path = os.path.join(config['trainer']['save_dir'], config['name'])
+        # # Print all keys in the config file
+        # print("Keys in the config file:")
+        # for key in config.keys():
+        #     print(key)
+        
+        print("CONFIG SSEED:", config['data_loader']['args']['seed'])
     elif args.resume:
         # load config file from checkpoint, in case new config file is not given.
         # Use '--config' and '--resume' arguments together to load trained model and train more with changed config.
         config = torch.load(args.resume)['config']
+        # # Print all keys in the config file
+        # print("Keys in the config file:")
+        # for key in config.keys():
+        #     print(key)
+        print("CONFIG SSEED:", config['data_loader']['args']['seed'])
     else:
         raise AssertionError("Configuration file need to be specified. Add '-c config.json', for example.")
 
@@ -113,4 +125,33 @@ if __name__ == '__main__':
         pass
     #params = {"text": False}
     #params = {"text": True, "codes": False, "learning_rate": 0.0001, "demographics_size": 0, "batch_size": 16, "div_factor": 1, "step_size": 40, "class_weight_1": 4.616655939419362, "class_weight_0": 0.81750651640358}
-    main(config, args.resume, params)
+    num_runs = 10
+    seeds = [97, 123, 456, 789, 321, 654, 987, 246, 135, 802]
+
+    all_metrics = []
+
+    for seed in seeds:
+        config['data_loader']['args']['seed'] = seed
+        print("NEW SEED:", config['data_loader']['args']['seed'])
+        log = main(config, args.resume, params)
+        print("MAIN LOG: ", log)
+
+        # Extract metrics from the log
+        metrics = {key: value for key, value in log.items() if isinstance(value, (int, float))}
+        print("MAIN METRICS: ", metrics)
+        all_metrics.append(metrics)
+
+    # Calculate average and standard error for each metric
+    avg_metrics = {}
+    std_error_metrics = {}
+
+    print("ALL METRICS: ", all_metrics)
+
+    for key in all_metrics[0].keys():
+        values = [metric[key] for metric in all_metrics]
+        avg_metrics[key] = np.mean(values)
+        std_error_metrics[key] = np.std(values) / np.sqrt(len(values))
+
+    # Print average and standard error for each metric on the same line
+    for key in avg_metrics.keys():
+        print(f"{key}: Avg = {avg_metrics[key]}, Std Err = {std_error_metrics[key]}")

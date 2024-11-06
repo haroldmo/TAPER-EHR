@@ -17,7 +17,7 @@
     "data_loader": {
         "type": "TextDataLoader",
         "args": {
-            "data_dir": "./data/rerun/",
+            "data_dir": "/home/haroldmo/MIMIC_III/gen_df_text_outputs",
             "text": "discharge",
             "batch_size": 32,
             "shuffle": true,

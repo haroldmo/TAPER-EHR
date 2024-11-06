@@ -82,9 +82,10 @@ class BaseTrainer:
         """
         Full training logic
         """
+        last_log = None
         for epoch in range(self.start_epoch, self.epochs + 1):
             result = self._train_epoch(epoch)
-
+            
             # save logged informations into log dict
             log = {'epoch': epoch}
             for key, value in result.items():
@@ -94,6 +95,10 @@ class BaseTrainer:
                     log.update({'val_' + mtr.__name__ : value[i] for i, mtr in enumerate(self.metrics)})
                 else:
                     log[key] = value
+            
+            last_log = log
+
+            print("THIS IS THE LOG: ", log)
             try:
                 temp_log = dict(log)
                 temp_log["loss"] = temp_log["loss"].item()
@@ -135,6 +140,8 @@ class BaseTrainer:
 
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch, save_best=best)
+
+        return last_log
 
 
     def _train_epoch(self, epoch):

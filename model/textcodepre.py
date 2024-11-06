@@ -63,6 +63,8 @@ class TextCodePre(BaseModel):
 
 
         self.patient_representation_size = int(self.text) * self.summarizer.hidden_size + self.transformer.d_embed * int(self.codes) + self.demographics_size
+        # print("patient representation size:", self.demographics_size)
+        print("patient representation size:", self.patient_representation_size)
         self.predictor = nn.Sequential(
                     nn.Dropout(p=dropout),
                     nn.Linear(self.patient_representation_size, self.patient_representation_size// div_factor),
@@ -71,12 +73,18 @@ class TextCodePre(BaseModel):
 
     def forward(self, x, device='cuda'):
         x_codes, x_cl, x_text, x_tl, b_is, demo = x
+        # print(x)
 
         x_codes = x_codes.to(device)
         x_cl = x_cl.to(device)
         x_text = x_text.to(device)
         x_tl = x_tl.to(device)
         demo = demo.to(device)
+        # print("demo size:", demo.size(1))
+        if demo.size(1) >= self.demographics_size:
+            demo = demo[:, [i for i in range(91) if i != 1]]
+
+        # print(demo)
         b_is = b_is.to(device)
         batch_size = b_is.shape[0]
 
@@ -112,6 +120,8 @@ class TextCodePre(BaseModel):
             else:
                 patient_representation = torch.cat((patient_representation, demo), dim=1)
 
+        # print("demo size:", demo.shape)
+        # print("PATIENT REP:", patient_representation.shape)
         logits = self.predictor(patient_representation)
         if self.num_classes > 1:
             log_probs = F.log_softmax(logits, dim=1).squeeze()

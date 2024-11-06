@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 import random
 
 class ClassificationDataset(data.Dataset):
-    def __init__(self, data_path, text, batch_size, y_label='los', train=True, transform=None, target_transform=None, download=False, balanced_data=False, validation_split=0.0, sequential=True, split_num=1, med=False, diag=False, proc=False, cptcode=False, sg_text=False, sg_path='', min_adm=1):
+    def __init__(self, data_path, text, batch_size, y_label='los', train=True, transform=None, target_transform=None, download=False, balanced_data=False, validation_split=0.0, sequential=True, split_num=0, med=False, diag=False, proc=False, cptcode=False, sg_text=False, sg_path='', min_adm=1):
         super(ClassificationDataset).__init__()
         self.proc = proc
         self.med = med
@@ -33,8 +33,15 @@ class ClassificationDataset(data.Dataset):
         self.data_info = self.data['info']
         self.data = self.data['data']
 
+        # print("Data features:", list(self.data.keys()))
+        # print("Data Info features:", list(self.data_info.keys()))
+        print("Demographics Info:", self.data_info['demographics_shape'], self.data_info['demographic_cols'])
+
         self.text_dim = self._get_text_dim(self.data)
         self.demographics_shape = self.data_info['demographics_shape']
+        # print(self.data_info['demographic_cols'])
+        # total_size = sum(len(lst) for lst in self.data_info['demographic_cols'].values())
+        # print("Total size of all lists combined:", total_size)
 
         self.diag_vocab = pickle.load(open(os.path.join(data_path, 'diag_vocab.pkl'), 'rb'))
         self.med_vocab = pickle.load(open(os.path.join(data_path, 'med_vocab.pkl'), 'rb'))
@@ -54,6 +61,8 @@ class ClassificationDataset(data.Dataset):
                          self.proc * self.num_pcodes + \
                          self.med * self.num_mcodes#len(self.vocab)
 
+
+
         data_split_path = os.path.join(self.data_path, 'splits', 'split_{}.pkl'.format(split_num))
         if (os.path.exists(data_split_path)):
             self.train_idx, self.valid_idx = pickle.load(open(data_split_path, 'rb'))
@@ -67,7 +76,7 @@ class ClassificationDataset(data.Dataset):
 
             if (self.balanced_data):
                 self.train_idx = self._gen_balanced_indices(self.train_idx)
-                #self.valid_idx = self._gen_balanced_indices(self.valid_idx)
+                self.valid_idx = self._gen_balanced_indices(self.valid_idx)
         else:
             # TODO: data index logic if train, validation splits are not provided
             pass
@@ -123,9 +132,18 @@ class ClassificationDataset(data.Dataset):
 
     def _gen_indices(self, keys):
         indices = []
+        unique_values_per_index = {}
         for k in keys:
             v = self.data[k]
             (x_codes, x_cl, x_text, x_tl, demo, y) = self.preprocess([k, 0])
+
+            num_indices = demo.size(0)
+            for i in range(num_indices):
+                if i not in unique_values_per_index:
+                    unique_values_per_index[i] = set()
+                unique_values_per_index[i].update([demo[i].item()])
+
+
             if torch.sum(x_text):
                 indices.append([k, 0])
             if (len(y.size()) == 0) or (len(demo.size()) == 0):
@@ -139,6 +157,9 @@ class ClassificationDataset(data.Dataset):
                     import pdb; pdb.set_trace()
 
                 indices.append([k, j + 1])
+
+        print(unique_values_per_index)
+                
         return indices
 
     def _findmax_len(self, keys):
@@ -169,6 +190,10 @@ class ClassificationDataset(data.Dataset):
         n = idx[1]
         x_codes = torch.zeros((self.num_codes, self.max_len), dtype=torch.float)
         demo = torch.Tensor(seq[n]['demographics'])
+        # print(demo.shape)
+
+        # print("Demographic features:", list(seq[n]['demographics'].keys()))
+
         x_text = torch.zeros(self.text_dim)
         for i in range(n):
             if(i + 1) == len(seq):
@@ -204,6 +229,14 @@ class ClassificationDataset(data.Dataset):
             y = torch.Tensor([seq[n]['readmission']])
         else:
             y = torch.Tensor([seq[n]['mortality']])
+        
+        # # Print dimensions of each tensor before returning
+        # print("Dimensions of x_codes:", x_codes.size())
+        # print("Dimensions of x_cl:", x_cl.size())
+        # print("Dimensions of x_text:", x_text.size())
+        # print("Dimensions of x_tl:", x_tl.size())
+        # print("Dimensions of demo:", demo.size())
+        # print("Dimensions of y:", y.size())
 
         return (x_codes.t(), x_cl, x_text, x_tl, demo, y)
 
@@ -271,13 +304,39 @@ class ClassificationDataset(data.Dataset):
 def collate_fn(data):
     x_codes, x_cl,  x_text, x_tl, demo, y_code = zip(*data)
     x_codes = torch.stack(x_codes, dim=1)
+    # print("DEMO:", demo)
     demo = torch.stack(demo, dim=0)
     y_code = torch.stack(y_code, dim=1).long()
     x_text = torch.stack(x_text, dim=1)
     x_cl = torch.stack(x_cl, dim=0).long()
     x_tl = torch.stack(x_tl, dim=0).long()
     b_is = torch.arange(x_cl.shape[0]).reshape(tuple(x_cl.shape)).long()
-    return (x_codes, x_cl.squeeze(),  x_text, x_tl.squeeze(), b_is.squeeze(), demo), y_code.squeeze()
+
+    # gender_labels = demo[:, 1]
+
+    # male_indices = [i for i, gender in enumerate(gender_labels) if gender == 0]
+    # female_indices = [i for i, gender in enumerate(gender_labels) if gender == 1]
+
+    # min_len = min(len(male_indices), len(female_indices))
+    # selected_indices = male_indices[:min_len] + female_indices[:min_len]
+
+    # x_codes = x_codes[:, selected_indices]
+    # x_text = x_text[:, selected_indices]
+    # x_cl = x_cl[selected_indices]
+    # x_tl = x_tl[selected_indices]
+    # demo = demo[selected_indices]
+    # y_code = y_code[:, selected_indices]
+    
+    b_is = torch.arange(x_cl.shape[0]).reshape(tuple(x_cl.shape)).long()
+    
+    return (x_codes, x_cl.squeeze(), x_text, x_tl.squeeze(), b_is.squeeze(), demo), y_code.squeeze()
+    # # Print the shape of each input tensor
+    # print("Shape of x_codes:", x_codes.shape)
+    # print("Shape of demo:", demo.shape)
+    # print("Shape of x_text:", x_text.shape)
+    # print("Shape of x_cl:", x_cl.shape)
+    # print("Shape of x_tl:", x_tl.shape)
+    # return (x_codes, x_cl.squeeze(),  x_text, x_tl.squeeze(), b_is.squeeze(), demo), y_code.squeeze()
 
 def non_seq_collate_fn(data):
     x_codes, x_text, x_tl, demo, y_code = zip(*data)
@@ -287,4 +346,9 @@ def non_seq_collate_fn(data):
     x_text = torch.stack(x_text, dim=0)
     x_tl = torch.stack(x_tl, dim=0).long()
     b_is = torch.arange(x_tl.shape[0]).reshape(tuple(x_tl.shape)).long()
+    # Print the shape of each input tensor
+    print("Shape of x_codes:", x_codes.shape)
+    print("Shape of demo:", demo.shape)
+    print("Shape of x_text:", x_text.shape)
+    print("Shape of x_tl:", x_tl.shape)
     return (x_codes, x_text, x_tl.squeeze(), b_is, demo), y_code.squeeze()

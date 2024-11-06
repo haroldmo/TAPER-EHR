@@ -6,10 +6,10 @@
         "type": "TextCodePre",
         "module_name": "textcodepre",
         "args": { 
-            "transformer_state_path": "./saved/t_recall_0/0106_201658/checkpoint-epoch100.pth",
-            "text_summarizer_state_path": "./saved/text_discharge_0/0106_200335/checkpoint-epoch30.pth",
+            "transformer_state_path": "/home/haroldmo/MIMIC_III/TAPER-EHR/saved/diagnoses_code_training_0/0229_182905/model_best.pth",
+            "text_summarizer_state_path": "/home/haroldmo/MIMIC_III/TAPER-EHR/saved/text discharge/0229_190657/checkpoint-epoch30.pth",
             "num_classes": 1,
-            "demographics_size": 91,
+            "demographics_size": 90,
             "text": true,
             "div_factor": 2,
             "codes": true 
@@ -18,18 +18,19 @@
     "data_loader": {
         "type": "ClassificationDataLoader",
         "args": {
-            "data_dir": "./data/textcode/biobert_pubmed/",
+            "data_dir": "/home/haroldmo/MIMIC_III/gen_df_text_outputs",
             "y_label": "mortality",
-            "balanced_data": true,
+            "balanced_data": false,
             "batch_size": 32,
             "text": "rest",
             "shuffle": true,
             "validation_split": 0.15,
             "num_workers": 4,
-            "med": false,
-            "cptcode": false,
+            "med": true,
+            "cptcode": true,
             "proc": true,
-            "diag": true
+            "diag": true,
+            "seed": 5
         }
     },
     "do_roc_metrics": true,
@@ -61,7 +62,7 @@
         "type": "ClassificationTrainer",
         "module_name": "classification_trainer",
         "epochs": 30,
-        "save_dir": "/mnt/sda1/data/experiments/saved/",
+        "save_dir": "./experiments/saved/",
         "save_period": 10,
         "verbosity": 2000,
         "log_step": 1000,

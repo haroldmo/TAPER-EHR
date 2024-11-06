@@ -18,6 +18,18 @@ class Trainer(BaseTrainer):
         self.do_validation = self.valid_data_loader is not None
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
+        # Print model summary
+        print("Here")
+        print(model)
+
+        # Explore model attributes
+        # Example: Print 'features' attribute if available
+        if hasattr(model, 'features'):
+            print(model.features)
+
+        # If your model is a sequential container, you can iterate over its modules
+        for name, module in model.named_modules():
+            print(name, module)
 
     def _eval_metrics(self, output, target):
         acc_metrics = np.zeros(len(self.metrics))

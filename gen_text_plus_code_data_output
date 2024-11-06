@@ -1,0 +1,28 @@
+Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex .
+[2024-02-21 23:39:04] INFO (model.bert_things.pytorch_pretrained_bert.modeling/MainThread) Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex .
+text sequence discharge length: 29
+text sequence rest length: 33
+  0%|          | 0/38402 [00:00<?, ?it/s]
+CUDA error: CUBLAS_STATUS_EXECUTION_FAILED when calling `cublasSgemm( handle, opa, opb, m, n, k, &alpha, a, lda, b, ldb, &beta, c, ldc)`
+> /home/haroldmo/MIMIC_III/TAPER-EHR/gen_text_plus_code_data.py(318)main()
+-> if (not os.path.exists(args.save)):
+(Pdb) Traceback (most recent call last):
+  File "/home/haroldmo/MIMIC_III/TAPER-EHR/gen_text_plus_code_data.py", line 381, in <module>
+    main()
+  File "/home/haroldmo/MIMIC_III/TAPER-EHR/gen_text_plus_code_data.py", line 318, in main
+    if (not os.path.exists(args.save)):
+  File "/home/haroldmo/MIMIC_III/TAPER-EHR/gen_text_plus_code_data.py", line 318, in main
+    if (not os.path.exists(args.save)):
+  File "/home/haroldmo/.conda/envs/py362/lib/python3.6/bdb.py", line 48, in trace_dispatch
+    return self.dispatch_line(frame)
+  File "/home/haroldmo/.conda/envs/py362/lib/python3.6/bdb.py", line 66, in dispatch_line
+    self.user_line(frame)
+  File "/home/haroldmo/.conda/envs/py362/lib/python3.6/pdb.py", line 261, in user_line
+    self.interaction(frame, None)
+  File "/home/haroldmo/.conda/envs/py362/lib/python3.6/pdb.py", line 352, in interaction
+    self._cmdloop()
+  File "/home/haroldmo/.conda/envs/py362/lib/python3.6/pdb.py", line 321, in _cmdloop
+    self.cmdloop()
+  File "/home/haroldmo/.conda/envs/py362/lib/python3.6/cmd.py", line 126, in cmdloop
+    line = input(self.prompt)
+OSError: [Errno 9] Bad file descriptor

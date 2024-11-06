@@ -48,12 +48,13 @@ class ClassificationDataLoader(BaseDataLoader):
     """
     Length of stay & readmission prediction tasks
     """
-    def __init__(self, text, data_dir, batch_size, shuffle, validation_split, num_workers, y_label='los', training=True, vocab_fname='', balanced_data=False, sequential=True, **kwargs):
+    def __init__(self, text, data_dir, batch_size, shuffle, validation_split, num_workers, y_label='los', training=True, vocab_fname='', balanced_data=False, sequential=True, seed=1, **kwargs):
 
         self.data_path = os.path.expanduser(data_dir)
         self.batch_size = batch_size
         self.train = training
-        self.text =text
+        self.text = text
+        self.seed = seed
 
         self.dataset = ClassificationDataset(self.data_path, self.text, self.batch_size, y_label, self.train, balanced_data=balanced_data, validation_split=validation_split, sequential=sequential, **kwargs)
         collate = classification_collate
@@ -62,4 +63,4 @@ class ClassificationDataLoader(BaseDataLoader):
 
 
         super(ClassificationDataLoader, self).__init__(self.dataset, batch_size, shuffle, validation_split, num_workers,
-                collate_fn=collate)
+                collate_fn=collate, seed=seed)

@@ -506,3 +506,217 @@ def precision(output, target, t=0.5):
     if (s != s):
         s = 1
     return s
+
+
+def accuracy_gender(output, target, gender_labels):
+    with torch.no_grad():
+        if len(target.shape) == 1:
+            target = torch.unsqueeze(target, 1)
+        if len(output.shape) == 1:
+            output = torch.unsqueeze(output, 1)
+
+        pred = output > 0.5
+        pred = pred.long()
+
+        male_indices = gender_labels == 0
+        female_indices = gender_labels == 1
+
+        male_fp = ((pred[male_indices] == 1) & (target[male_indices] == 0)).sum().item()
+        female_fp = ((pred[female_indices] == 1) & (target[female_indices] == 0)).sum().item()
+
+        male_tn = ((pred[male_indices] == 0) & (target[male_indices] == 0)).sum().item()
+        female_tn = ((pred[female_indices] == 0) & (target[female_indices] == 0)).sum().item()
+
+        male_fn = ((pred[male_indices] == 0) & (target[male_indices] == 1)).sum().item()
+        female_fn = ((pred[female_indices] == 0) & (target[female_indices] == 1)).sum().item()
+
+        male_tp = ((pred[male_indices] == 1) & (target[male_indices] == 1)).sum().item()
+        female_tp = ((pred[female_indices] == 1) & (target[female_indices] == 1)).sum().item()
+
+
+        male_accuracy = (male_tp + male_tn) / (male_tp + male_tn + male_fp + male_fn) if male_tp + male_tn + male_fp + male_fn > 0 else None
+        female_accuracy = (female_tp + female_tn) / (female_tp + female_tn + female_fp + female_fn) if female_tp + female_tn + female_fp + female_fn > 0 else None
+    return male_accuracy, female_accuracy
+
+
+
+def FPR_gender(output, target, gender_labels):
+    with torch.no_grad():
+        if len(target.shape) == 1:
+            target = torch.unsqueeze(target, 1)
+        if len(output.shape) == 1:
+            output = torch.unsqueeze(output, 1)
+
+        pred = output > 0.5
+        pred = pred.long()
+
+        male_indices = gender_labels == 0
+        female_indices = gender_labels == 1
+
+        male_fp = ((pred[male_indices] == 1) & (target[male_indices] == 0)).sum().item()
+        female_fp = ((pred[female_indices] == 1) & (target[female_indices] == 0)).sum().item()
+
+        male_tn = ((pred[male_indices] == 0) & (target[male_indices] == 0)).sum().item()
+        female_tn = ((pred[female_indices] == 0) & (target[female_indices] == 0)).sum().item()
+
+        male_fn = ((pred[male_indices] == 0) & (target[male_indices] == 1)).sum().item()
+        female_fn = ((pred[female_indices] == 0) & (target[female_indices] == 1)).sum().item()
+
+        male_tp = ((pred[male_indices] == 1) & (target[male_indices] == 1)).sum().item()
+        female_tp = ((pred[female_indices] == 1) & (target[female_indices] == 1)).sum().item()
+
+        male_FPR = male_fp / (male_fp + male_tn) if male_fp + male_tn > 0 else None
+        female_FPR = female_fp / (female_fp + female_tn) if female_fp + female_tn > 0 else None
+
+    return male_FPR, female_FPR
+
+
+def FNR_gender(output, target, gender_labels):
+    with torch.no_grad():
+        if len(target.shape) == 1:
+            target = torch.unsqueeze(target, 1)
+        if len(output.shape) == 1:
+            output = torch.unsqueeze(output, 1)
+
+        pred = output > 0.5
+        pred = pred.long()
+
+        male_indices = gender_labels == 0
+        female_indices = gender_labels == 1
+
+        male_fp = ((pred[male_indices] == 1) & (target[male_indices] == 0)).sum().item()
+        female_fp = ((pred[female_indices] == 1) & (target[female_indices] == 0)).sum().item()
+
+        male_tn = ((pred[male_indices] == 0) & (target[male_indices] == 0)).sum().item()
+        female_tn = ((pred[female_indices] == 0) & (target[female_indices] == 0)).sum().item()
+
+        male_fn = ((pred[male_indices] == 0) & (target[male_indices] == 1)).sum().item()
+        female_fn = ((pred[female_indices] == 0) & (target[female_indices] == 1)).sum().item()
+
+        male_tp = ((pred[male_indices] == 1) & (target[male_indices] == 1)).sum().item()
+        female_tp = ((pred[female_indices] == 1) & (target[female_indices] == 1)).sum().item()
+
+        male_FNR = male_fn / (male_fn + male_tp) if male_fn + male_tp > 0 else None
+        female_FNR = female_fn / (female_fn + female_tp) if female_fn + female_tp > 0 else None
+
+    return male_FNR, female_FNR
+
+def TPR_gender(output, target, gender_labels):
+    with torch.no_grad():
+        if len(target.shape) == 1:
+            target = torch.unsqueeze(target, 1)
+        if len(output.shape) == 1:
+            output = torch.unsqueeze(output, 1)
+
+        pred = output > 0.5
+        pred = pred.long()
+
+        male_indices = gender_labels == 0
+        female_indices = gender_labels == 1
+
+        male_fp = ((pred[male_indices] == 1) & (target[male_indices] == 0)).sum().item()
+        female_fp = ((pred[female_indices] == 1) & (target[female_indices] == 0)).sum().item()
+
+        male_tn = ((pred[male_indices] == 0) & (target[male_indices] == 0)).sum().item()
+        female_tn = ((pred[female_indices] == 0) & (target[female_indices] == 0)).sum().item()
+
+        male_fn = ((pred[male_indices] == 0) & (target[male_indices] == 1)).sum().item()
+        female_fn = ((pred[female_indices] == 0) & (target[female_indices] == 1)).sum().item()
+
+        male_tp = ((pred[male_indices] == 1) & (target[male_indices] == 1)).sum().item()
+        female_tp = ((pred[female_indices] == 1) & (target[female_indices] == 1)).sum().item()
+
+        male_TPR = male_tp / (male_tp + male_fn) if male_tp + male_fn > 0 else None
+        female_TPR = female_tp / (female_tp + female_fn) if female_tp + female_fn > 0 else None
+
+    return male_TPR, female_TPR
+
+def TNR_gender(output, target, gender_labels):
+    with torch.no_grad():
+        if len(target.shape) == 1:
+            target = torch.unsqueeze(target, 1)
+        if len(output.shape) == 1:
+            output = torch.unsqueeze(output, 1)
+
+        pred = output > 0.5
+        pred = pred.long()
+
+        male_indices = gender_labels == 0
+        female_indices = gender_labels == 1
+
+        male_fp = ((pred[male_indices] == 1) & (target[male_indices] == 0)).sum().item()
+        female_fp = ((pred[female_indices] == 1) & (target[female_indices] == 0)).sum().item()
+
+        male_tn = ((pred[male_indices] == 0) & (target[male_indices] == 0)).sum().item()
+        female_tn = ((pred[female_indices] == 0) & (target[female_indices] == 0)).sum().item()
+
+        male_fn = ((pred[male_indices] == 0) & (target[male_indices] == 1)).sum().item()
+        female_fn = ((pred[female_indices] == 0) & (target[female_indices] == 1)).sum().item()
+
+        male_tp = ((pred[male_indices] == 1) & (target[male_indices] == 1)).sum().item()
+        female_tp = ((pred[female_indices] == 1) & (target[female_indices] == 1)).sum().item()
+
+        male_TNR = male_tn / (male_tn + male_fp) if male_tn + male_fp > 0 else None
+        female_TNR = female_tn / (female_tn + female_fp) if female_tn + female_fp > 0 else None
+
+    return male_TNR, female_TNR
+
+def PPV_gender(output, target, gender_labels):
+    with torch.no_grad():
+        if len(target.shape) == 1:
+            target = torch.unsqueeze(target, 1)
+        if len(output.shape) == 1:
+            output = torch.unsqueeze(output, 1)
+
+        pred = output > 0.5
+        pred = pred.long()
+
+        male_indices = gender_labels == 0
+        female_indices = gender_labels == 1
+
+        male_fp = ((pred[male_indices] == 1) & (target[male_indices] == 0)).sum().item()
+        female_fp = ((pred[female_indices] == 1) & (target[female_indices] == 0)).sum().item()
+
+        male_tn = ((pred[male_indices] == 0) & (target[male_indices] == 0)).sum().item()
+        female_tn = ((pred[female_indices] == 0) & (target[female_indices] == 0)).sum().item()
+
+        male_fn = ((pred[male_indices] == 0) & (target[male_indices] == 1)).sum().item()
+        female_fn = ((pred[female_indices] == 0) & (target[female_indices] == 1)).sum().item()
+
+        male_tp = ((pred[male_indices] == 1) & (target[male_indices] == 1)).sum().item()
+        female_tp = ((pred[female_indices] == 1) & (target[female_indices] == 1)).sum().item()
+
+        male_PPV = male_tp / (male_tp + male_fp) if male_tp + male_fp > 0 else None
+        female_PPV = female_tp / (female_tp + female_fp) if female_tp + female_fp > 0 else None
+
+    return male_PPV, female_PPV
+
+def NPV_gender(output, target, gender_labels):
+    with torch.no_grad():
+        if len(target.shape) == 1:
+            target = torch.unsqueeze(target, 1)
+        if len(output.shape) == 1:
+            output = torch.unsqueeze(output, 1)
+
+        pred = output > 0.5
+        pred = pred.long()
+
+        male_indices = gender_labels == 0
+        female_indices = gender_labels == 1
+
+        male_fp = ((pred[male_indices] == 1) & (target[male_indices] == 0)).sum().item()
+        female_fp = ((pred[female_indices] == 1) & (target[female_indices] == 0)).sum().item()
+
+        male_tn = ((pred[male_indices] == 0) & (target[male_indices] == 0)).sum().item()
+        female_tn = ((pred[female_indices] == 0) & (target[female_indices] == 0)).sum().item()
+
+        male_fn = ((pred[male_indices] == 0) & (target[male_indices] == 1)).sum().item()
+        female_fn = ((pred[female_indices] == 0) & (target[female_indices] == 1)).sum().item()
+
+        male_tp = ((pred[male_indices] == 1) & (target[male_indices] == 1)).sum().item()
+        female_tp = ((pred[female_indices] == 1) & (target[female_indices] == 1)).sum().item()
+
+        male_NPV = male_tn / (male_tn + male_fn) if male_tn + male_fn > 0 else None
+        female_NPV = female_tn / (female_tn + female_fn) if female_tn + female_fn > 0 else None
+
+    return male_NPV, female_NPV

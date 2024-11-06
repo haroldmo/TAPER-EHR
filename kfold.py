@@ -37,7 +37,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--path', default=None, type=str, help='path to mimic-iii csvs')
     parser.add_argument('-s', '--save', default=None, type=str, help='path to dump output')
     parser.add_argument('-seed', '--seed', default=1, type=int, help='numpy seed used to create datasplit')
-    parser.add_argument('-k', '--kfold',  default=7, type=int, help='kfold split')
+    parser.add_argument('-k', '--kfold',  default=4, type=int, help='kfold split')
     parser.add_argument('-filter_codes',  action='store_true', help='filter codes based on frequency count')
     parser.add_argument('-min_adm',  type=int, help='min number of admissions filter, af must be specified')
 
@@ -46,6 +46,11 @@ if __name__ == '__main__':
 
 
     data = pickle.load(open(args.path, 'rb'))
+    # Get the keys of the loaded data dictionary
+    data_keys = data.keys()
+
+    # Print the keys
+    print("Keys of the data dictionary:", data_keys)
     data_info = data['info']
     data_data = data['data']
     if (args.filter_codes):

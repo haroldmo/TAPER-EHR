@@ -9,7 +9,7 @@
         "init_std": 0.02, 
         "proj_init_std": 0.01,
         "args": {
-            "n_token": 232,
+            "n_token": 4764,
             "n_layer": 2,
             "d_model": 256,
             "n_head": 8,
@@ -28,14 +28,14 @@
     "data_loader": {
         "type": "SeqCodeDataLoader",
         "args": {
-            "data_dir": "./data/textcode/biobert_pubmed",
+            "data_dir": "/home/haroldmo/MIMIC_III/gen_df_text_outputs",
             "batch_size": 32,
             "shuffle": true,
             "validation_split": 0.10,
             "num_workers": 1,
-            "med": false,
-            "cptcode": false,
-            "proc": false,
+            "med": true,
+            "cptcode": true,
+            "proc": true,
             "diag": true,
             "split_num": 0
         }

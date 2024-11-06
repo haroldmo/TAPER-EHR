@@ -159,7 +159,19 @@ def merge_on_subject_admission_left(t1, t2):
     return t1.merge(t2, how='left', left_on=['SUBJECT_ID', 'HADM_ID'], right_on=['SUBJECT_ID', 'HADM_ID'])
 
 def add_age_to_icustays(stays):
-    stays['AGE'] = (stays.INTIME - stays.DOB).apply(lambda s: s / np.timedelta64(1, 's')) / 60./60/24/365
+    # stays['AGE'] = (stays.INTIME - stays.DOB).apply(lambda s: s / np.timedelta64(1, 's')) / 60./60/24/365
+    # stays['AGE'] = ((stays.INTIME - stays.DOB) / np.timedelta64(1, 'Y')).astype(float)
+    try:
+        print("Max INTIME:", stays['INTIME'].max())
+        print("Min INTIME:", stays['INTIME'].min())
+
+        print("Max DOB:", stays['DOB'].max())
+        print("Min DOB:", stays['DOB'].min())
+        stays['AGE'] = (stays.INTIME - stays.DOB).apply(lambda s: s / np.timedelta64(1, 's')) / 60./60/24/365
+    except OverflowError:
+        # Handle overflow error by setting default values
+        stays['AGE'] = 50
+
     idxs = stays.AGE < 0
     stays.loc[idxs, 'AGE'] = 90
     return stays

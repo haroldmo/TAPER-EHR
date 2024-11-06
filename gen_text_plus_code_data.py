@@ -73,13 +73,15 @@ def _prepare_device(n_gpu_use):
         if n_gpu_use = 0, use cpu
         """
         n_gpu = torch.cuda.device_count()
+        print(n_gpu)
         if n_gpu_use > 0 and n_gpu == 0:
             logging.warning("Warning: There\'s no GPU available on this machine, training will be performed on CPU.")
             n_gpu_use = -1
         if n_gpu_use > n_gpu:
             logging.warning("Warning: The number of GPU\'s configured to use is {}, but only {} are available on this machine.".format(n_gpu_use, n_gpu))
             n_gpu_use = n_gpu
-        device = torch.device('cuda:0' if n_gpu_use > 0 else 'cpu')
+        device = torch.device('cuda' if n_gpu_use > 0 else 'cpu')
+        print(device)
         list_ids = list(range(n_gpu_use))
         return device, list_ids
 
@@ -147,8 +149,9 @@ def main():
     los_bins = [1, 2, 3, 4, 5, 6, 7, 8, 14, float('inf')]
     los_labels = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     df.loc[:, 'LOS'] = pd.cut(df['LOS'], bins=los_bins, labels=los_labels)
+    df.loc[:, 'GENDER'] = -53
 
-
+    print(len(df), df.columns)
 
     temp_data = []
     data = {}
@@ -158,7 +161,7 @@ def main():
     med_vocab = Vocab()
     proc_vocab = Vocab()
 
-
+    print('checkpoint 1')
     if (args.vocab_path != ''):
         #to use below checkout https://github.com/sajaddarabi/HCUP-US-EHR
         if (args.diagnoses):
@@ -172,6 +175,7 @@ def main():
 
 
 
+    print('checkpoint 2')
     if (os.path.exists(os.path.join(args.save, 'data.pkl'))):
         temp_data = pickle.load(open(os.path.join(args.save, 'data.pkl'), 'rb'))
         temp_data = temp_data['data']
@@ -189,29 +193,36 @@ def main():
 
     if args.embed_text:
         tokenizer = BertTokenizer(args.bert_vocab_path)
-
+    print('checkpoint 3')
     if args.embed_text and (len(temp_data) == 0):
         bert_config = BertConfig(args.bert_config_path)
         model = BertTextModel(bert_config)
         state_dict = torch.load(args.state_dict_path)
         model.init_bert_weights(state_dict)
         device, _ = _prepare_device(args.gpu)
+        print(device)
         model = model.to(device)
         max_seq_len_text_d = args.text_seq_length_discharge
         max_seq_len_text_r = args.text_seq_length_rest
 
+        print('checkpoint 4')
         if max_seq_len_text_d  == 0:
+            print('checkpoint 5')
             max_seq_len_text = compute_max_seq_len_text(df, 'TEXT_DISCHARGE', tokenizer)
+            print('checkpoint 6')
             max_seq_len_text = max_seq_len_text // args.max_bert_seq_len + 1
             max_seq_len_text_d = max_seq_len_text
             print("text sequence discharge length: {}".format(max_seq_len_text_d))
 
         if max_seq_len_text_r  == 0:
+            print('checkpoint 7')
             max_seq_len_text = compute_max_seq_len_text(df, 'TEXT_REST', tokenizer)
             max_seq_len_text = max_seq_len_text // args.max_bert_seq_len + 1
             max_seq_len_text_r = max_seq_len_text
+            print('checkpoint 8')
             print("text sequence rest length: {}".format(max_seq_len_text_r))
     try:
+        print('checkpoint 5')
         for pid in tqdm(pids):
             pid_df = df[df['SUBJECT_ID'] == pid]
             pid_df = pid_df.sort_values('ADMITTIME').reset_index()
@@ -226,6 +237,7 @@ def main():
                 # leave discharge summary seperate
                 admit_data = {}
                 demographics = [r['AGE'], r['GENDER'], r['MARITAL_STATUS']]
+                print('DEMO with just age, gender, and marital status: ', demographics)
 
                 icu_unit = np.zeros((demographic_cols['LAST_CAREUNIT'].size, ), dtype=int)
                 icu_unit[r['LAST_CAREUNIT']] = 1
@@ -240,6 +252,7 @@ def main():
                 demographics += list(ethnicity)
 
                 admit_data['demographics'] = demographics
+                print('DEMO with everything else added: ', demographics)
                 dtok, ptok, mtok, ctok = [], [], [], []
                 diagnosis_codes, proc_codes, med_codes, cpt_codes = np.nan, np.nan, np.nan, np.nan
 
@@ -314,6 +327,8 @@ def main():
     except Exception as error:
         print(error)
         import pdb; pdb.set_trace()
+
+    print(args.save)
 
     if (not os.path.exists(args.save)):
         os.makedirs(args.save)

@@ -53,15 +53,19 @@ class BaseDataLoader(DataLoader):
             return None, None
         idx_full = np.arange(self.n_samples)
         np.random.seed(self.seed)
+        print("SEED HERE:" , self.seed)
 
         # shuffle indexes only if shuffle is true
         # if order matters don't shuffle
         # added for med2vec dataset where order matters
         len_valid = int(self.n_samples * split)
+        print("valid split:", split)
+        print("len valid:", len_valid)
         if (self.shuffle):
             if (hasattr(self.dataset, 'valid_idx')):
                 valid_idx = self.dataset.valid_idx
                 train_idx = self.dataset.train_idx
+                print("len valid idx:", len(valid_idx))
             else:
                 valid_idx = idx_full[0:len_valid]
 
